@@ -12,7 +12,12 @@ st.title("Transcripción de Audio a Texto con Whisper")
 # Cargar el archivo de audio
 audio_file = st.file_uploader("Sube un archivo de audio", type=["mp3", "wav", "m4a"])
 
-if audio_file is not None:
+# Verificar si ya existe una transcripción previa en session_state
+if "transcription_result" not in st.session_state:
+    st.session_state["transcription_result"] = None
+
+# Procesar el archivo de audio si se sube uno nuevo y no hay transcripción almacenada
+if audio_file is not None and st.session_state["transcription_result"] is None:
     # Convertir el archivo subido a formato pydub AudioSegment
     audio = AudioSegment.from_file(audio_file)
 
@@ -44,21 +49,22 @@ if audio_file is not None:
         progress_bar.progress(progress_percentage)
 
     # Combinar todas las transcripciones en un solo texto
-    complete_transcription = "\n".join(all_transcriptions)
-
-    # Mostrar la transcripción en la aplicación
-    st.text_area("Transcripción:", complete_transcription, height=300)
-
-    # Opción para descargar la transcripción como archivo .txt
-    st.download_button(
-        label="Descargar transcripción como .txt",
-        data=complete_transcription,
-        file_name="transcripcion.txt",
-        mime="text/plain"
-    )
+    st.session_state["transcription_result"] = "\n".join(all_transcriptions)
 
     # Limpieza de archivos temporales (opcional)
     for fragment_path in fragment_paths:
         os.remove(fragment_path)
 
     st.success("Transcripción completada.")
+
+# Mostrar la transcripción solo si ya fue procesada
+if st.session_state["transcription_result"] is not None:
+    st.text_area("Transcripción:", st.session_state["transcription_result"], height=300)
+
+    # Opción para descargar la transcripción como archivo .txt
+    st.download_button(
+        label="Descargar transcripción como .txt",
+        data=st.session_state["transcription_result"],
+        file_name="transcripcion.txt",
+        mime="text/plain"
+    )
