@@ -12,6 +12,10 @@ st.title("Transcripción de Audio a Texto con Whisper")
 # Cargar el archivo de audio
 audio_file = st.file_uploader("Sube un archivo de audio", type=["mp3", "wav", "m4a"])
 
+# Limpiar el estado si no hay archivo cargado
+if audio_file is None:
+    st.session_state["transcription_result"] = None
+
 # Verificar si ya existe una transcripción previa en session_state
 if "transcription_result" not in st.session_state:
     st.session_state["transcription_result"] = None
