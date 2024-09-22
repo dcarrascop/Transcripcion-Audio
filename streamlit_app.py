@@ -27,16 +27,21 @@ if audio_file is not None:
         chunk.export(fragment_path, format="mp3")
         fragment_paths.append(fragment_path)
 
-    # Mostrar mensaje de progreso
-    st.write("Transcribiendo el audio...")
+    # Mostrar barra de progreso
+    progress_bar = st.progress(0)
+    total_chunks = len(fragment_paths)
 
     # Transcribir cada fragmento
     all_transcriptions = []
-    for fragment_path in fragment_paths:
+    for i, fragment_path in enumerate(fragment_paths):
         with open(fragment_path, "rb") as audio_chunk:
             # Llamar a la API de Whisper para transcribir el fragmento
             transcription = openai.Audio.transcribe(model="whisper-1", file=audio_chunk)
             all_transcriptions.append(transcription['text'])
+        
+        # Actualizar la barra de progreso
+        progress_percentage = (i + 1) / total_chunks
+        progress_bar.progress(progress_percentage)
 
     # Combinar todas las transcripciones en un solo texto
     complete_transcription = "\n".join(all_transcriptions)
@@ -55,3 +60,5 @@ if audio_file is not None:
     # Limpieza de archivos temporales (opcional)
     for fragment_path in fragment_paths:
         os.remove(fragment_path)
+
+    st.success("Transcripción completada.")
